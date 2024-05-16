@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+
+<html>
+    <head>
+        <title>Flask App</title>
+        <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    </head>
+    <body>
+
+    <canvas id="myChart" width="400" height="400"></canvas>
+    <script>
+        const socket = new WebSocket("ws://localhost:8765");
+
+        const cdata = {
+            labels: [],
+            datasets: [{
+                label: 'FFT',
+                backgroundColor: 'rgb(255, 99, 132)',
+                borderColor: 'rgb(255, 99, 132)',
+                data: [],
+            }]
+        };
+
+        const config = {
+            type: 'line',
+            data: cdata,
+            options: { maintainAspectRatio: false }
+        };
+
+        const ctx = document.getElementById('myChart').getContext('2d');
+        const myChart = new Chart(ctx,
+            config
+        );
+
+
+    function send() {
+        socket.send("");
+    }
+
+    console.log("Connection Opened");
+
+
+    socket.onerror = function (event) {
+        console.log(event);
+    }
+
+    socket.onopen = function (event) {
+        console.log("Connection Opened");
+        setInterval(send, 75);
+    }
+
+    socket.onmessage = function (event) {
+    var data = event.data.replace('[','').replace(']','').split(',');
+    data = data.map(Number);
+
+    let labels = []
+
+    for (let i = 0; i < data.length; i++) {
+        labels.push(i);
+    }
+    myChart.data.datasets[0].data = data;
+    myChart.data.labels = labels;
+
+    myChart.update();
+
+    }
+
+    </script>
+
+
+    </body>
+</html>
